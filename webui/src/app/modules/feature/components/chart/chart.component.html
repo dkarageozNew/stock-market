@@ -1,0 +1,19 @@
+<ng-container *ngIf="chartData.length">
+    <div class="chart-header">
+        <div class="chart-label"
+             [style.color]="chartColor">
+            {{ chartLabel }}
+        </div>
+        <div class="mt-12">
+            <app-buttons-group>
+                <button (click)="loadChartData(interval.DAY)">One day <span class="second-text">(24 hours)</span></button>
+                <button (click)="loadChartData(interval.TWELVE_HOURS)">12 hours</button>
+                <button (click)="loadChartData(interval.SIX_HOURS)">6 hours</button>
+                <button (click)="loadChartData(interval.ONE_HOUR)">1 hour</button>
+            </app-buttons-group>
+        </div>
+    </div>
+    <div class="chart-view">
+        <app-line-chart [chartData]="chartData" [color]="chartColor"></app-line-chart>
+    </div>
+</ng-container>

@@ -1,0 +1,16 @@
+.dashboard {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.chart-container {
+  width: 50%;
+}
+
+.vertical-gap-15 {
+  margin-top: -15px;
+
+  & > * {
+    margin-top: 15px;
+  }
+}

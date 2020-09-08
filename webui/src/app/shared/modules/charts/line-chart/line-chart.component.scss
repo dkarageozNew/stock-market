@@ -1,0 +1,18 @@
+@import "~src/styles/colors";
+
+.chart {
+  height: 100%;
+  width: 100%;
+
+  &::ng-deep {
+    .axis {
+      path, line {
+        stroke: $font-color;
+      }
+
+      text {
+        fill: $font-color;
+      }
+    }
+  }
+}

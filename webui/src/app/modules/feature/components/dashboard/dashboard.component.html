@@ -1,0 +1,8 @@
+<div class="dashboard vertical-gap-15">
+    <div *ngFor="let item of chartEvents" class="chart-container">
+        <app-chart [stokeType]="item"
+                   [chartColor]="chartColors[item]"
+                   [chartLabel]="chartLabels[item]"
+        ></app-chart>
+    </div>
+</div>

@@ -1,0 +1,30 @@
+@import "~src/styles/colors";
+
+.buttons-group {
+
+  &::ng-deep {
+
+    button {
+      &:first-child {
+        border-bottom-left-radius: 5px;
+        border-top-left-radius: 5px;
+      }
+
+      &:last-child {
+        border-bottom-right-radius: 5px;
+        border-top-right-radius: 5px;
+      }
+
+      background: none;
+      color: $font-color;
+      padding: 8px 16px;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      transition: background 240ms ease;
+      cursor: pointer;
+
+      &:hover {
+        background: $color-grey;
+      }
+    }
+  }
+}
