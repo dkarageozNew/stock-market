@@ -4,7 +4,7 @@ import { from, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { StockInterval, StockType } from '../constants/stock.constants';
-import { IStockApiResponse, IStockItem, IStockPriseApi } from '../models/stock.models';
+import { IStockApiResponse, IStockItem, IStockPriceApi } from '../models/stock.models';
 import { CacheService } from './cache.service';
 import { environment } from '../../../environment';
 
@@ -39,10 +39,11 @@ export class StockService {
     }
 
     public loadStockData(tickers: StockType, lastNewData?: boolean): Observable<Array<IStockItem>> {
-        const lastDay = new Date().getTime() - 1000 * 60 * 60 * 24;
-        const last5Min = new Date().getTime() - 1000 * 60 * 5;
+        const currentTime = new Date().getTime();
+        const lastDay = currentTime - 1000 * 60 * 60 * 24;
+        const last5Min = currentTime - 1000 * 60 * 5;
         const startDate = new Date(lastNewData ? last5Min : lastDay).toISOString();
-        const currentTime = new Date().getTime() / 1000;
+        const unixTimestamp = currentTime / 1000;
 
         const params = {
             token: environment.API_TOKEN,
@@ -53,13 +54,14 @@ export class StockService {
 
         return this.httpClient.get<[IStockApiResponse]>(environment.STOCK_API_URL, {params})
             .pipe(
-                map(({ data }: AxiosResponse<[IStockApiResponse]>) => data[0] && data[0].priceData),
-                map((items: Array<IStockPriseApi>) => {
-                    return items.reduce((res: Array<IStockItem>, { date, close }: IStockPriseApi) => {
+                map(({ data }: AxiosResponse<[IStockApiResponse]>) => {
+                    const items = (data[0] && data[0].priceData) || [];
+
+                    return items.reduce((res: Array<IStockItem>, { date, close }: IStockPriceApi) => {
                         const timestamp = new Date(date).getTime() / 1000;
 
                         return res.some(
-                            (item: IStockItem) => item.timestamp === timestamp || timestamp > currentTime
+                            (item: IStockItem) => item.timestamp === timestamp || timestamp > unixTimestamp
                         )
                             ? res
                             : res.concat({ value: close, timestamp })

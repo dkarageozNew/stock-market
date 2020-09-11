@@ -62,7 +62,7 @@ export class TasksService implements OnModuleInit, OnModuleDestroy {
                         .pipe(
                             map(parseStockData)
                         )
-                        ;
+                    ;
                 })
             )
         };

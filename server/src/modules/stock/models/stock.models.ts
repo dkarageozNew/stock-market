@@ -1,12 +1,12 @@
 import { StockType } from '../constants/stock.constants';
 
-export interface IStockPriseApi {
+export interface IStockPriceApi {
     close: number;
     date: string;
 }
 
 export interface IStockApiResponse {
-    priceData: Array<IStockPriseApi>;
+    priceData: Array<IStockPriceApi>;
 }
 
 export interface IStockItem {
