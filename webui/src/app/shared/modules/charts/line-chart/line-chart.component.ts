@@ -78,7 +78,7 @@ export class LineChartComponent implements OnChanges, AfterViewInit, OnDestroy {
         }
 
         const {width, height, margin} = this.chartSize();
-        const [xScale, yScale, lineBuilder] = this.getChartCalculations();
+        const [xScale, yScale, lineBuilder, movingAverageLine] = this.getChartCalculations();
 
         const svg = select(this.chartRef.nativeElement).append('svg')
             .attr('width', width + margin * 2)
@@ -95,12 +95,19 @@ export class LineChartComponent implements OnChanges, AfterViewInit, OnDestroy {
             .attr('class', 'y axis')
             .call(axisLeft(yScale));
 
-        svg.append('path')
-            .attr('class', 'line')
+        const [simpleLine, movingLine] = ['line-origin', 'line-moving'].map((className: string) => svg
+            .append('path')
+            .attr('class', `line ${className}`)
             .style('fill', 'none')
             .style('stroke-width', 2)
             .style('stroke', this.color || '#ffab00')
+        );
+
+        simpleLine
+            .style('stroke-opacity', '35%')
             .attr('d', lineBuilder(this.chartData));
+
+        movingLine.attr('d', movingAverageLine(this.chartData));
 
         this.chartExist = true;
     }
@@ -110,7 +117,7 @@ export class LineChartComponent implements OnChanges, AfterViewInit, OnDestroy {
             return;
         }
 
-        const [xScale, yScale, lineBuilder] = this.getChartCalculations();
+        const [xScale, yScale, lineBuilder, movingAverageLine] = this.getChartCalculations();
 
         select(this.chartRef.nativeElement)
             .select('.x.axis')
@@ -121,8 +128,12 @@ export class LineChartComponent implements OnChanges, AfterViewInit, OnDestroy {
             .call(axisLeft(yScale));
 
         select(this.chartRef.nativeElement)
-            .select('.line')
+            .select('.line.line-origin')
             .attr('d', lineBuilder(this.chartData));
+
+        select(this.chartRef.nativeElement)
+            .select('.line.line-moving')
+            .attr('d', movingAverageLine(this.chartData));
     }
 
     private onResize: () => void = () => {
@@ -137,8 +148,9 @@ export class LineChartComponent implements OnChanges, AfterViewInit, OnDestroy {
     }
 
     private getChartCalculations(): [
-            ScaleTime<number, number> | ScaleLinear<number, number>,
+        ScaleTime<number, number> | ScaleLinear<number, number>,
         ScaleLinear<number, number>,
+        Line<IChartDataItem>,
         Line<IChartDataItem>
     ] {
         const {width, height} = this.chartSize();
@@ -164,6 +176,31 @@ export class LineChartComponent implements OnChanges, AfterViewInit, OnDestroy {
             .y((d: IChartDataItem) => yScale(d.y))
         ;
 
-        return [xScale, yScale, lineBuilder];
+        let prevPrevVal = 0;
+        let prevVal = 0;
+        let curVal = 0;
+
+        const movingAverageLine = line<IChartDataItem>()
+            .x((d: IChartDataItem) => xScale(d.x))
+            .y((d: IChartDataItem, i: number) => {
+                if (i === 0) {
+                    prevPrevVal = yScale(d.y);
+                    prevVal = yScale(d.y);
+                    curVal = yScale(d.y);
+                } else if (i === 1) {
+                    prevPrevVal = prevVal;
+                    prevVal = curVal;
+                    curVal = (prevVal + yScale(d.y)) / 2;
+                } else {
+                    prevPrevVal = prevVal;
+                    prevVal = curVal;
+                    curVal = (prevPrevVal + prevVal + yScale(d.y)) / 3;
+                }
+
+                return curVal;
+            })
+        ;
+
+        return [xScale, yScale, lineBuilder, movingAverageLine];
     }
 }

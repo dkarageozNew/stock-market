@@ -42,6 +42,7 @@ export class StockService {
         const lastDay = new Date().getTime() - 1000 * 60 * 60 * 24;
         const last5Min = new Date().getTime() - 1000 * 60 * 5;
         const startDate = new Date(lastNewData ? last5Min : lastDay).toISOString();
+        const currentTime = new Date().getTime() / 1000;
 
         const params = {
             token: environment.API_TOKEN,
@@ -52,16 +53,18 @@ export class StockService {
 
         return this.httpClient.get<[IStockApiResponse]>(environment.STOCK_API_URL, {params})
             .pipe(
-                map((response: AxiosResponse<[IStockApiResponse]>) => {
-                    const data = response.data[0];
+                map(({ data }: AxiosResponse<[IStockApiResponse]>) => data[0] && data[0].priceData),
+                map((items: Array<IStockPriseApi>) => {
+                    return items.reduce((res: Array<IStockItem>, { date, close }: IStockPriseApi) => {
+                        const timestamp = new Date(date).getTime() / 1000;
 
-                    return data && data.priceData
-                        ? data.priceData.map<IStockItem>((item: IStockPriseApi) => ({
-                            value: item.close,
-                            timestamp: new Date(item.date).getTime() / 1000
-                        }))
-                        : []
+                        return res.some(
+                            (item: IStockItem) => item.timestamp === timestamp || timestamp > currentTime
+                        )
+                            ? res
+                            : res.concat({ value: close, timestamp })
                         ;
+                    }, []);
                 })
             )
             ;
